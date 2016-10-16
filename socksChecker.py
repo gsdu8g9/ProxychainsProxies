@@ -38,6 +38,7 @@ class ThreadChecker(threading.Thread):
 			return False
 		return True
 	def getSocksVersion(self, proxy):
+		global port
 		host = proxy.split(":")[0]
 		try:
 			port = int(proxy.split(":")[1])
@@ -60,6 +61,7 @@ class ThreadChecker(threading.Thread):
 				("Not a SOCKS: " + proxy)
 				s.close()
 				return 0
+
 		except socket.timeout:
 			print "Timeout: " + proxy
 			s.close()

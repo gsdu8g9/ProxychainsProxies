@@ -1,4 +1,4 @@
-#!/bin python
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 import requests
@@ -11,21 +11,24 @@ import socket
 from struct import *
 
 userAgent={"User-Agent" : "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.2785.116 Safari/537.36"}
-foundIP=[]
-foundPort=[]
+foundProxy={}
 
 def fromGatherProxies():
 	req = requests.get("http://www.gatherproxy.com/sockslist", headers=userAgent)
 	raw_html = req.text
 	soup = BeautifulSoup(raw_html, "html.parser")
 	soup2 = soup.findAll("script")
+	ipx = ""
+	portx = ""
 	for tag in soup2:
 		ip = re.findall(r'[0-9]+(?:\.[0-9]+){3}', str(tag))
 		port = re.findall(r'[0-9]{4,5}', str(tag))
-		if len(ip)!=0:
-			foundIP.append(ip[0])
-		if len(port)!=0:
-			foundPort.append(port[0])
+		if len(ip) != 0:
+			ipx = ip[0]
+		if len(port) != 0:
+			portx = port[0]
+		foundProxy[str(ipx)] = str(portx)
+
 
 def fromXroxy():
 	for page in range(0,5):
@@ -33,21 +36,25 @@ def fromXroxy():
 		raw_html = req.text
 		soup = BeautifulSoup(raw_html, "html.parser")
 		trs = soup.find_all('tr', {"class" : "row0"})
+		ipx = ""
+		portx = ""
 		for tr in trs:
 			ip = re.findall(r'[0-9]+(?:\.[0-9]+){3}', str(tr))
 			port = re.findall(r'[0-9]{4,5}', str(tr))
 			if len(ip) != 0:
-				foundIP.append(ip[0])
+				ipx = ip[0]
 			if len(port) != 0:
-				foundPort.append(port[3])
+				portx = port[3]
+			foundProxy[str(ipx)] = str(portx)
 		trs2 = soup.find_all('tr', {"class" : "row1"})
 		for tr in trs2:
 			ip = re.findall(r'[0-9]+(?:\.[0-9]+){3}', str(tr))
 			port = re.findall(r'[0-9]{4,5}', str(tr))
 			if len(ip) != 0:
-				foundIP.append(ip[0])
+				ipx = ip[0]
 			if len(port) != 0:
-				foundPort.append(port[3])
+				portx = port[3]
+			foundProxy[str(ipx)] = str(portx)
 
 def fromSamair():
 	try:
@@ -56,13 +63,16 @@ def fromSamair():
 			raw_html = req.text
 			soup = BeautifulSoup(raw_html, "html.parser")
 			soup2 = soup.findAll("td")
+			ipx = ""
+			portx = ""
 			for page in soup2:
 				ip = re.findall(r'[0-9]+(?:\.[0-9]+){3}', str(page))
 				port = re.findall(r'[0-9]{4,5}', str(page))
 				if len(ip) != 0:
-					foundIP.append(ip[0])
+					ipx = ip[0]
 				if len(port) != 0:
-					foundPort.append(port[0])
+					portx = port[0]
+				foundProxy[str(ipx)] = str(portx)
 
 	except Exception as e:
 		print "Could not connect to Samair: " + str(e)
@@ -85,13 +95,16 @@ def printProxychainsConf():
 		print "something failed in the printProxychainsConf-function: " + str(e)
 
 def testProxies():
-	amount=len(foundIP)
-	with open("toTesting.txt", "a") as testingFactory:
-		print "Sending " + str(len(foundIP)) + " proxies to the doctor for diagnosis"
-		for x in range(0,amount):
-			testingFactory.write(str(foundIP[x]) + ":" + str(foundPort[x]) + "\n")
 	try:
-		subprocess.call("./bin/python ./socksChecker.py", cwd='./', shell=True)
+		with open("toTesting.txt", "a") as testingFactory:
+			print "Sending " + str(len(foundProxy)) + " proxies to the doctor for diagnosis"
+			for ip, port in foundProxy.items():
+				if len(ip) > 1:
+					testingFactory.write(str(ip) + ":" + str(port) + "\n")
+	except Exception as e:
+		print "Got the following error while sending proxies for lookup: " + str(e)
+	try:
+		os.system("./bin/python ./socksChecker.py")
 	except Exception as e:
 		print "Could not validate proxies: " + str(e)
 
@@ -192,12 +205,14 @@ def emptyFiles():
 
 def main():
 	#createFiles()
-	fromGatherProxies()
 	fromXroxy()
 	fromSamair()
+	fromGatherProxies()
 	testProxies()
 	printProxychainsConf()
 	emptyFiles()
+
+
 
 if __name__ == "__main__":
 	main()
@@ -206,6 +221,5 @@ if __name__ == "__main__":
 """
 Todo:
 - Check if empty files are available, if not, create them for writing
-- Make the ip and port key-value pairs (So that if there are problems getting one port, it won't create a domino effect, making all the other proxies fail)
-
+- Getting "invalid: <ip>" when checking proxies, needs a fixer-upper.
 """
