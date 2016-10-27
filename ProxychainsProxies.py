@@ -6,7 +6,6 @@ from bs4 import BeautifulSoup
 import re
 import socksChecker #from https://github.com/BeastsMC/SOCKS-Proxy-Checker
 import os
-import subprocess
 import socket
 from struct import *
 
@@ -185,6 +184,21 @@ def createFiles():
 	else:
 		file("toTesting.txt", 'w').close()
 
+	if os.path.exists("proxychains.conf"):
+		pass
+	else:
+		file("proxychains.conf", 'w').close()
+
+	#copying old proxyfile if any and making space for a new one if necessary
+	if os.stat("proxychains.conf").st_size > 2:
+		try:
+			os.remove("proxychains.conf.old")
+		except:
+			pass
+		os.rename("proxychains.conf", "proxychains.conf.old")
+		file("proxychains.conf", "w").close()
+
+
 def emptyFiles():
 	try:
 		with open("toTesting.txt", 'w+') as testing:
@@ -204,7 +218,7 @@ def emptyFiles():
 
 
 def main():
-	#createFiles()
+	createFiles()
 	fromXroxy()
 	fromSamair()
 	fromGatherProxies()

@@ -97,7 +97,7 @@ checkQueue = Queue.Queue()
 socksProxies = Queue.Queue()
 inputFile = open("toTesting.txt", 'r')
 outputPath = "ok.txt"
-threads = int(10)
+threads = int(20)
 timeout = int(10)
 for line in inputFile.readlines():
 	checkQueue.put(line.strip('\n'))
