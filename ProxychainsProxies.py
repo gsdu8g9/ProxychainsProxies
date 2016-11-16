@@ -103,7 +103,7 @@ def testProxies():
 	except Exception as e:
 		print "Got the following error while sending proxies for lookup: " + str(e)
 	try:
-		os.system("./bin/python ./socksChecker.py")
+		os.system("python ./socksChecker.py")
 	except Exception as e:
 		print "Could not validate proxies: " + str(e)
 
